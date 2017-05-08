@@ -181,10 +181,10 @@ module Sinatra
           if settings.result_validation
             begin
               # Inspired from Sinatra#invoke
-              if (Fixnum === response) or (String === response)
+              if (1.class === response) or (String === response)
                 response = [response]
               end
-              if (Array === response) and (Fixnum === response.first)
+              if (Array === response) and (1.class === response.first)
                 response_for_validation = response.dup
                 response_status = response_for_validation.shift
                 response_body = response_for_validation.pop
