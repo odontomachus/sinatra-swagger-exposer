@@ -2,6 +2,8 @@
 
 - Fix when an html content is expected and no content type is specified
 - Prevents conflicts with Sinatra::Json library, fix by Grant McLendon
+- Prepare for Ruby 2.4
+- Allow Sinatra >=1.4 for integration with Sinatra 2
 
 # 0.5.0
 
