@@ -71,6 +71,13 @@ class TestSwaggerTypeProperty < Minitest::Test
       new_tp(nil, nil, {:type => String, :minLength => 10}).to_swagger.must_equal({:type => 'string', :minLength => 10})
       new_tp(nil, nil, {:type => String, :maxLength => 10}).to_swagger.must_equal({:type => 'string', :maxLength => 10})
 
+      new_tp(nil, nil, {:type => Float}).to_swagger.must_equal({:type => 'number', :format => 'float'})
+      new_tp(nil, nil, {:type => Float, :format => 'double'}).to_swagger.must_equal({:type => 'number', :format => 'double'})
+
+      new_tp(nil, nil, {:type => DateTime}).to_swagger.must_equal({:type => 'string', :format => 'date-time'})
+
+      new_tp(nil, nil, {:type => Date}).to_swagger.must_equal({:type => 'string', :format => 'date'})
+
       new_tp(nil, nil, {:description => 'Foo'}).to_swagger.must_equal({:description => 'Foo'})
       new_tp(nil, nil, {:example => 'Foo', }).to_swagger.must_equal({:example => 'Foo'})
 

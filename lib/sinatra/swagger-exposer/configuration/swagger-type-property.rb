@@ -58,7 +58,8 @@ module Sinatra
               end
             else
               if PRIMITIVE_TYPES.include? @type
-                result[:type] = @type
+                swagger_type = type_to_spec()
+                result.merge!(swagger_type.merge(result))
               else
                 result['$ref'] = "#/definitions/#{@type}"
               end
@@ -66,6 +67,19 @@ module Sinatra
           end
 
           result
+        end
+
+        def type_to_spec
+          case @type
+          when 'dateTime'
+            { type: 'string', format: 'date-time' }
+          when 'date'
+            { type: 'string', format: 'date' }
+          when 'float'
+            { type: 'number', format: 'float' }
+          else
+            { type: @type }
+          end
         end
 
         def to_s
