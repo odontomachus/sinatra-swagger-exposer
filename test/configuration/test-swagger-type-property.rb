@@ -88,6 +88,12 @@ class TestSwaggerTypeProperty < Minitest::Test
       new_tp(nil, nil, {:type => ['foo']}, ['foo']).to_swagger.must_equal({:type => 'array', :items => {'$ref' => '#/definitions/foo'}})
     end
 
+    it 'must convert type to swagger spec' do
+      new_tp(nil, nil, {:type => Float}).type_to_spec.must_equal({:type => 'number', :format => 'float'})
+      new_tp(nil, nil, {:type => DateTime}).type_to_spec.must_equal({:type => 'string', :format => 'date-time'})
+      new_tp(nil, nil, {:type => Date}).type_to_spec.must_equal({:type => 'string', :format => 'date'})
+    end
+
     it 'must answer to to_s' do
       JSON.parse(new_tp(nil, nil, {:type => String}).to_s).must_equal({'name' => nil, 'type' => 'string', 'items' => nil, 'other_properties' => {}})
     end
