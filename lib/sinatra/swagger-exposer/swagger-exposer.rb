@@ -33,7 +33,7 @@ module Sinatra
 
       app.set :swagger_processor_creator, Sinatra::SwaggerExposer::SwaggerProcessorCreator.new(swagger_types)
       declare_swagger_endpoint(app)
-      delare_default_error_endpoints(app)
+      declare_default_error_endpoints(app)
     end
 
     # Declare the endpoint to serve the swagger content
@@ -67,7 +67,7 @@ module Sinatra
 
     # Declare default error endpoints
     # @param [Sinatra::Base]
-    def self.delare_default_error_endpoints(app)
+    def self.declare_default_error_endpoints(app)
       app.set :show_execptions, false
       app.error(Sinatra::SwaggerExposer::SwaggerInvalidException) do |e|
         content_type :json
