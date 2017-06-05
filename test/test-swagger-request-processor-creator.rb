@@ -12,12 +12,13 @@ class TestSwaggerRequestProcessorCreator < Minitest::Test
 
     class FakeSwaggerEndpointForTestSwaggerRequestProcessorCreator
 
-      attr_reader :parameters, :produces, :responses
+      attr_reader :parameters, :produces, :responses, :consumes
 
-      def initialize(parameters, responses = {}, produces = [])
+      def initialize(parameters, responses = {}, produces = [], consumes = [])
         @parameters = parameters
         @responses = responses
         @produces = produces
+        @consumes = consumes
       end
 
     end
@@ -33,13 +34,13 @@ class TestSwaggerRequestProcessorCreator < Minitest::Test
 
     end
 
-    def create_request_processor(types, parameters, responses = {}, produces = [])
+    def create_request_processor(types, parameters, responses = {}, produces = [], consumes = [])
       swagger_types = Sinatra::SwaggerExposer::Configuration::SwaggerTypes.new
       types.each_pair do |name, param|
         swagger_types.add_type name, param
       end
       processor_creator = Sinatra::SwaggerExposer::SwaggerProcessorCreator.new(swagger_types)
-      swagger_endpoint = FakeSwaggerEndpointForTestSwaggerRequestProcessorCreator.new(parameters, responses, produces)
+      swagger_endpoint = FakeSwaggerEndpointForTestSwaggerRequestProcessorCreator.new(parameters, responses, produces, consumes)
       processor_creator.create_request_processor(swagger_endpoint)
     end
 
@@ -66,6 +67,10 @@ class TestSwaggerRequestProcessorCreator < Minitest::Test
 
     it 'transmits the produeces param' do
       create_request_processor({}, [], {}, ['image/png']).produces.must_equal ['image/png']
+    end
+
+    it 'transmits the consumes param' do
+      create_request_processor({},[],{},['text/plain'], ['text/plain']).consumes.must_equal ['text/plain']
     end
 
     it 'deal with useless request processor' do

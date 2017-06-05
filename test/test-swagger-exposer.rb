@@ -468,6 +468,61 @@ class TestSwaggerExposer < Minitest::Test
       JSON.parse(last_response.body).must_equal({'status' => 'OK'})
     end
 
+
+    class MySinatraApp_Error < Sinatra::Base
+      set :logging, true
+      register Sinatra::SwaggerExposer
+
+      endpoint :summary => 'hello',
+               :description => 'Base method to ping',
+               :responses => {200 => ['string', 'Standard response']},
+               :tags => 'Ping',
+               :path => '/the-path',
+               :produces => 'application/json',
+               :parameters => {'plop' => ['description', :body, true, String]}
+      get '/path' do
+        200
+      end
+    end
+
+    it "should fallback to default error handler" do
+      @my_app = MySinatraApp_Error
+      get('/path')
+      last_response.status.must_equal 400
+      JSON.parse(last_response.body).must_equal({'code' => 400,
+                                                 'message' => 'Mandatory value [plop] is missing'})
+    end
+
+    class MySinatraApp_Error_Custom < Sinatra::Base
+      set :logging, true
+      register Sinatra::SwaggerExposer
+
+      endpoint :summary => 'hello',
+               :description => 'Base method to ping',
+               :responses => {200 => ['string', 'Standard response']},
+               :tags => 'Ping',
+               :path => '/the-path',
+               :produces => 'text/plain',
+               :consumes => 'text/plain'
+      post '/path' do
+        content_type 'text/plain'
+        200
+      end
+
+      error Sinatra::SwaggerExposer::SwaggerInvalidException do |e|
+        status 400
+        content_type 'text/plain'
+        e.message
+      end
+    end
+
+    it "should utilise custom handler" do
+      @my_app = MySinatraApp_Error_Custom
+      post('/path')
+      last_response.status.must_equal 400
+      last_response.body.must_equal("Declared to consume Content-Type [text/plain], received application/x-www-form-urlencoded")
+    end
+
   end
 
 end

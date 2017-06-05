@@ -21,13 +21,14 @@ module Sinatra
       # A processor for a request, apply the parameters processors then execute the query code
       class SwaggerRequestProcessor
 
-        attr_reader :processors_dispatchers, :response_processors, :produces
+        attr_reader :processors_dispatchers, :response_processors, :produces, :consumes
 
         # @param produces [Array<String>]
-        def initialize(produces = nil)
+        def initialize(produces = nil, consumes = nil)
           @processors_dispatchers = []
           @response_processors = {}
           @produces = produces
+          @consumes = consumes
           if produces
             @produces_types = produces.collect do |produce|
               if produce == '*'
@@ -37,6 +38,16 @@ module Sinatra
               end
             end.flatten
           end
+          if consumes
+            @consumes_types = consumes.collect do |consume|
+              if consume == '*'
+                [Sinatra::SwaggerExposer::Processing::AllMimesTypes.new]
+              else
+                MIME::Types[consume]
+              end
+            end.flatten
+          end
+
         end
 
         # @param dispatcher [Sinatra::SwaggerExposer::Processing::SwaggerProcessorDispatcher]
@@ -58,25 +69,21 @@ module Sinatra
         # @param block the block containing the route content
         def run(app, block_params, &block)
           parsed_body = {}
+          validate_request_consume_content_type(app.env['CONTENT_TYPE'])
           if JSON_CONTENT_TYPE.like?(app.env['CONTENT_TYPE'])
             body = app.request.body.read
             unless body.empty?
               begin
                 parsed_body = JSON.parse(body)
               rescue JSON::ParserError => e
-                return [400, {:code => 400, :message => e.message}.to_json]
+                raise SwaggerInvalidException.new(e.message)
               end
             end
           end
           app.params['parsed_body'] = parsed_body
           unless @processors_dispatchers.empty?
             @processors_dispatchers.each do |processor_dispatcher|
-              begin
-                processor_dispatcher.process(app, parsed_body)
-              rescue SwaggerInvalidException => e
-                app.content_type :json
-                return [400, {:code => 400, :message => e.message}.to_json]
-              end
+              processor_dispatcher.process(app, parsed_body)
             end
           end
           if block
@@ -100,6 +107,18 @@ module Sinatra
             end
           else
             raise SwaggerInvalidException.new("Status with unknown response status [#{response_status}], known statuses are [#{@response_processors.keys.join(', ')}] response value is #{response_body}")
+          end
+        end
+
+        # Validate a response consume content type
+        # @param content_type [String] the content type to validate
+        def validate_request_consume_content_type(content_type)
+          if @consumes
+            if !content_type.nil?
+              unless @consumes_types.any? {|consume| consume.like?(content_type) }
+                raise SwaggerInvalidException.new("Declared to consume Content-Type [#{@consumes.join(", ")}], received #{content_type}")
+              end
+            end
           end
         end
 
