@@ -27,7 +27,8 @@ module Sinatra
       # @param swagger_endpoint [Sinatra::SwaggerExposer::Configuration::SwaggerEndpoint] the endpoint
       # @return [Sinatra::SwaggerExposer::Processing::SwaggerRequestProcessor]
       def create_request_processor(swagger_endpoint)
-        request_processor = Sinatra::SwaggerExposer::Processing::SwaggerRequestProcessor.new(swagger_endpoint.produces)
+        request_processor = Sinatra::SwaggerExposer::Processing::SwaggerRequestProcessor.new(swagger_endpoint.produces,
+                                                                                             swagger_endpoint.consumes)
 
         swagger_endpoint.parameters.each do |parameter|
           if TYPE_FILE == parameter.type

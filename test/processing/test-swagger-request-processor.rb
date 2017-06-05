@@ -13,8 +13,8 @@ class TestSwaggerRequestProcessor < Minitest::Test
     # @param dispatcher [Sinatra::SwaggerExposer::Processing::SwaggerProcessorDispatcher]
     # @param produces [Array<String>]
     # @return [Sinatra::SwaggerExposer::Processing::SwaggerRequestProcessor]
-    def new_rp(dispatcher, produces = nil)
-      request_processor = Sinatra::SwaggerExposer::Processing::SwaggerRequestProcessor.new(produces)
+    def new_rp(dispatcher, produces = nil, consumes = nil)
+      request_processor = Sinatra::SwaggerExposer::Processing::SwaggerRequestProcessor.new(produces, consumes)
       if dispatcher
         request_processor.add_dispatcher dispatcher
       end
@@ -83,9 +83,9 @@ class TestSwaggerRequestProcessor < Minitest::Test
     it 'should fail when the processor fail' do
       processor_dispatcher = FakeProcessorDispatcher.new('plop')
       app = FakeRequestProcessorApp.new({:head => :ears}, '')
-      result = new_rp(processor_dispatcher).run(app, [])
-      result[0].must_equal 400
-      JSON.parse(result[1]).must_equal({'code' => 400, 'message' => 'plop'})
+      must_raise_swag_and_equal(
+        -> { result = new_rp(processor_dispatcher).run(app, []) },
+        "plop")
     end
 
     it 'should parse the body' do
@@ -124,9 +124,20 @@ class TestSwaggerRequestProcessor < Minitest::Test
       end
       processor_dispatcher = FakeProcessorDispatcher.new(nil)
       app = FakeRequestProcessorApp.new({'CONTENT_TYPE' => 'application/json'}, invalid_body)
-      result = new_rp(processor_dispatcher).run(app, [])
-      result.must_equal [400, {"code": 400, "message": expected_message}.to_json]
+      must_raise_swag_and_equal(
+        -> { result = new_rp(processor_dispatcher).run(app, [])},
+        "765: unexpected token at '{\"plip: \"plop\"}'")
     end
+
+
+    it "should raise error with invalid consume type" do
+      processor_dispatcher = FakeProcessorDispatcher.new(nil)
+      app = FakeRequestProcessorApp.new({'CONTENT_TYPE' => 'application/json'}, "text")
+      must_raise_swag_and_equal(
+        -> { result = new_rp(processor_dispatcher, ['text/plain'], ['text/plain']).run(app, [])},
+        "Declared to consume Content-Type [text/plain], received application/json")
+    end
+
 
     it 'should fail with an unknown content type' do
       must_raise_swag_and_equal(
@@ -136,6 +147,13 @@ class TestSwaggerRequestProcessor < Minitest::Test
       must_raise_swag_and_equal(
         -> { new_rp(nil, ['application/xml']).validate_response(nil, 'image/png', 200) },
         'Undeclared content type [image/png], declared content type are [application/xml]'
+      )
+    end
+
+    it 'should fail with an unknown consume type' do
+      must_raise_swag_and_equal(
+        -> { new_rp(nil,['text/plain'], ['text/plain']).validate_request_consume_content_type('application/xml') },
+        'Declared to consume Content-Type [text/plain], received application/xml'
       )
     end
 
