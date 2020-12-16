@@ -100,7 +100,7 @@ module Sinatra
         # @param response_status [Integer] the status
         def validate_response(response_body, content_type, response_status)
           validate_response_content_type(content_type, response_status)
-          if @response_processors.key?(response_status) or @response_processors.first[0].include?(response_status) // in case if you set endpoint_response like [202,200]
+          if @response_processors.key?(response_status) or @response_processors.first[0].include?(response_status) # in case if you set endpoint_response like [202,200]
             response_processor = response_processors[response_status]
             if JSON_CONTENT_TYPE.like?(content_type) && response_processor
               response_processor.validate_response(response_body)
