@@ -32,7 +32,7 @@ module Sinatra
       app.set :swagger_response_headers, response_headers
 
       app.set :swagger_processor_creator, Sinatra::SwaggerExposer::SwaggerProcessorCreator.new(swagger_types)
-      declare_swagger_endpoint(app)
+      declare_swagger_endpoint(app) if ENV['RACK_ENV'] != 'production'
       declare_default_error_endpoints(app)
     end
 
