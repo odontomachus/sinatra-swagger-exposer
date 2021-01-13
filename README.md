@@ -1,8 +1,6 @@
 # Sinatra::SwaggerExposer
 
-[![Code Climate](https://codeclimate.com/github/archiloque/sinatra-swagger-exposer/badges/gpa.svg)](https://codeclimate.com/github/archiloque/sinatra-swagger-exposer)
-[![Build Status](https://travis-ci.org/archiloque/sinatra-swagger-exposer.svg?branch=master)](https://travis-ci.org/archiloque/sinatra-swagger-exposer)
-[![Coverage Status](https://coveralls.io/repos/archiloque/sinatra-swagger-exposer/badge.svg?branch=master)](https://coveralls.io/r/archiloque/sinatra-swagger-exposer?branch=master)
+_This fork is no longer maintained._
 
 Create Swagger endpoint for your Sinatra application.
 
